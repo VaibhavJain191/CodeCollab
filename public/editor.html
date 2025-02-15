@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor</title>
+    <link href="style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/theme/monokai.min.css">
+<script src= "https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/default.min.css"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/ruby/ruby.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/php/php.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/go/go.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/mode/rust/rust.min.js"></script>   
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+</head>
+<body>
+   
+    <header>
+        <!-- Project Logo and Name -->
+        <a class="navbar-brand d-flex align-items-center" style="display: flex; align-items: center; text-decoration: none; color: white;">
+            <i class="fas fa-code fa-2x me-2 animated-icon"></i>
+            <h2 style="margin: 10px; font-size: 24px; font-weight: bold;">CodeCollab</h2>
+        </a>
+    
+        <!-- Welcome Message -->
+        <p class="welcome-message" style="margin: 0; font-size: 18px;">Welcome, User!</p>
+    
+        <!-- User Avatar -->
+        <div id="user-avatar" style="width: 40px; height: 40px; background-color: #ff954a; color: white; display: flex; justify-content: center; align-items: center; border-radius: 50%; font-weight: bold;">
+            A
+        </div>
+    </header>
+    
+   
+<!-- Settings Panel -->
+<div id="settings-panel" class="settings-panel">
+  <h3>Settings</h3>
+  <label>
+    <input type="checkbox" id="theme-toggle"> Dark Mode
+  </label>
+  <br>
+  <label>
+    Font Size:
+    <select id="font-size-select">
+      <option value="12">12px</option>
+      <option value="14">14px</option>
+      <option value="16">16px</option>
+      <option value="18">18px</option>
+    </select>
+  </label>
+  <button id="close-settings" style="margin-top: 10px;">Close</button>
+</div>
+        <div class="editor-container">
+            <div class="editor-toolbar">
+                <select id="language-select"class="language-select">
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="java">Java</option>
+                    <option value="cpp">C++</option>
+                    <option value="csharp">C#</option>
+                    <option value="ruby">Ruby</option>
+                    <option value="php">PHP</option>
+                    <option value="go">Go</option>
+                    <option value="rust">Rust</option>
+                  </select>
+                  
+                <div class="button-group">
+                    <button class="toolbar-btn save-btn" onclick="saveDocument()">Save</button>
+                    <button class="toolbar-btn load-btn" onclick="loadDocuments()">Load</button>
+                    <button class="toolbar-btn share-btn" onclick="shareDocument()">Share</button>
+                    <button class="toolbar-btn settings-btn" id="settings-btn">Settings</button>
+                    <button id="run-code" class="toolbar-btn primary">Run Code</button>
+                    <button onclick="handleLogout()" class="toolbar-btn logout-btn">Logout</button>
+                </div>
+            </div>
+
+            <div class="editor-workspace">
+                <div class="code-panel">
+                    <div id="editor-wrapper">
+                        <textarea id="code-editor"></textarea>
+                    </div>
+                </div>
+
+                <div class="output-panel">
+                    <div class="console-header">
+                        <div id="console-tabs">
+                            <button id="tab-output" class="console-tab active-tab">Output</button>
+                            <button id="tab-status" class="console-tab">Status</button>
+                        </div>
+                    </div>
+                    <div id="console-content">
+                        <div id="output-content" class="console-content active-content">
+                            <pre id="execution-output">Run your code to see output here...</pre>
+                            <div id="last-execution" class="execution-info"></div>
+                        </div>
+                        <div id="status-content" class="console-content">
+                            <p>Status: Ready</p>
+                            <p id="users-count">Connected Users: 1</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+
+        <div id="participants-panel">
+            <h3>Participants</h3>
+            <ul id="participants-list"></ul>
+        </div>
+        
+
+       <!-- Chat Icon -->
+       <div class="chat-icon" id="chat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12 0C5.4 0 0 4.5 0 10c0 2.1 0.9 4.1 2.4 5.7-0.4 1.5-1.2 3.2-2.4 4.2 1.8-0.3 3.6-1 5.2-2.1C7.8 18.8 9.8 19.5 12 19.5c6.6 0 12-4.5 12-10S18.6 0 12 0z"></path>
+        </svg>
+  <span id="chat-notification" class="notification">0</span>
+  <i class="fa-solid fa-comment"></i> <!-- Use Font Awesome for the chat icon -->
+</div>
+
+<!-- Chat Section -->
+<div id="chat-section" class="chat-section hidden">
+  <div id="chat-header">
+    <h3>Chat</h3>
+    <button id="close-chat">Close</button>
+  </div>
+  <div id="chat-messages" class="chat-messages"></div>
+  <form id="chat-form" class="chat-form">
+    <input id="chat-input" type="text" placeholder="Type a message..." />
+    <button type="submit">Send</button>
+  </form>
+</div>
+    <script src="js/client.js"></script>
+    
+
+    
+</body>
+</html>
